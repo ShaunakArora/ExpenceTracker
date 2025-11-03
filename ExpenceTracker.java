@@ -24,8 +24,8 @@ public class ExpenceTracker extends JFrame {
     private final Color textMuted = new Color(158, 158, 158);
     private final Color incomeGreen = new Color(102, 187, 106);
 
-    // Transaction Types
-    private enum TransactionType { INCOME, EXPENSE }
+    // Transaction Types (made public for access by other classes)
+    public enum TransactionType { INCOME, EXPENSE }
 
     // Fonts
     private Font openSans;
@@ -42,6 +42,8 @@ public class ExpenceTracker extends JFrame {
     private JLabel totalExpenseLabel;
     private JLabel balanceLabel;
     private JTable transactionTable;
+    private JTabbedPane tabbedPane;
+    private DataVisualizationPanel dataVisualizationPanel;
 
     public ExpenceTracker() {
         // --- Data Initialization ---
@@ -64,8 +66,18 @@ public class ExpenceTracker extends JFrame {
         // Create and set the menu bar
         setJMenuBar(createMenuBar());
 
+        // Create the main content area with tabs
+        tabbedPane = new JTabbedPane();
+        tabbedPane.setBackground(backgroundDark);
+        tabbedPane.setForeground(textLight);
+        tabbedPane.setFont(openSans);
+
+        dataVisualizationPanel = new DataVisualizationPanel(transactions);
+        tabbedPane.addTab("Transactions", createTransactionsPanel());
+        tabbedPane.addTab("Dashboard", dataVisualizationPanel);
+
         add(createHeaderPanel(), BorderLayout.NORTH);
-        add(createTransactionsPanel(), BorderLayout.CENTER);
+        add(tabbedPane, BorderLayout.CENTER);
         add(createActionBar(), BorderLayout.SOUTH);
 
         // Initial data load for UI
@@ -74,16 +86,12 @@ public class ExpenceTracker extends JFrame {
 
     private void loadInitialData() {
         // Dummy data for demonstration
-        try {
-            transactions.add(new Transaction(new Date(), "Salary", "Monthly Paycheck", 75000.00, TransactionType.INCOME));
-            transactions.add(new Transaction(new Date(), "Rent", "Monthly Rent", 20000.00, TransactionType.EXPENSE));
-            transactions.add(new Transaction(new Date(), "Food", "Groceries", 8500.50, TransactionType.EXPENSE));
-            transactions.add(new Transaction(new Date(), "Transport", "Gasoline", 3000.00, TransactionType.EXPENSE));
-            transactions.add(new Transaction(new Date(), "Entertainment", "Movie tickets", 1200.00, TransactionType.EXPENSE));
-            transactions.add(new Transaction(getPastDate(5), "Freelance", "Project Work", 15000.00, TransactionType.INCOME));
-        } catch (java.text.ParseException e) {
-            e.printStackTrace();
-        }
+        transactions.add(new Transaction(new Date(), "Salary", "Monthly Paycheck", 75000.00, TransactionType.INCOME));
+        transactions.add(new Transaction(new Date(), "Rent", "Monthly Rent", 20000.00, TransactionType.EXPENSE));
+        transactions.add(new Transaction(new Date(), "Food", "Groceries", 8500.50, TransactionType.EXPENSE));
+        transactions.add(new Transaction(new Date(), "Transport", "Gasoline", 3000.00, TransactionType.EXPENSE));
+        transactions.add(new Transaction(new Date(), "Entertainment", "Movie tickets", 1200.00, TransactionType.EXPENSE));
+        transactions.add(new Transaction(getPastDate(5), "Freelance", "Project Work", 15000.00, TransactionType.INCOME));
     }
     
     private JPanel createSidebar() {
@@ -97,7 +105,8 @@ public class ExpenceTracker extends JFrame {
         menuBar.setBorder(BorderFactory.createEmptyBorder());
 
         JMenu fileMenu = new JMenu("File");
-        fileMenu.setForeground(textLight);
+        fileMenu.setForeground(Color.BLACK);
+        fileMenu.setFont(roboto.deriveFont(14f));
         JMenuItem exportItem = new JMenuItem("Export to CSV");
         exportItem.addActionListener(e -> exportTransactionsToCSV());
         JMenuItem exitItem = new JMenuItem("Exit");
@@ -107,7 +116,8 @@ public class ExpenceTracker extends JFrame {
         fileMenu.add(exitItem);
 
         JMenu editMenu = new JMenu("Edit");
-        editMenu.setForeground(textLight);
+        editMenu.setForeground(Color.BLACK);
+        editMenu.setFont(roboto.deriveFont(14f));
         JMenuItem addItem = new JMenuItem("Add Transaction");
         addItem.addActionListener(e -> showAddEditTransactionDialog(null));
         JMenuItem editItem = new JMenuItem("Edit Selected");
@@ -119,13 +129,29 @@ public class ExpenceTracker extends JFrame {
         editMenu.add(deleteItem);
 
         JMenu helpMenu = new JMenu("Help");
-        helpMenu.setForeground(textLight);
+        helpMenu.setForeground(Color.BLACK);
+        helpMenu.setFont(roboto.deriveFont(14f));
         JMenuItem aboutItem = new JMenuItem("About");
         aboutItem.addActionListener(e -> showAboutDialog());
         helpMenu.add(aboutItem);
 
+        JMenu chartsMenu = new JMenu("Charts");
+        chartsMenu.setForeground(Color.BLACK);
+        chartsMenu.setFont(roboto.deriveFont(14f));
+        JMenuItem addChartItem = new JMenuItem("Add Chart");
+        addChartItem.addActionListener(e -> manageChart("add"));
+        JMenuItem editChartItem = new JMenuItem("Edit Chart");
+        editChartItem.addActionListener(e -> manageChart("edit"));
+        JMenuItem deleteChartItem = new JMenuItem("Delete Chart");
+        deleteChartItem.addActionListener(e -> manageChart("delete"));
+
+        chartsMenu.add(addChartItem);
+        chartsMenu.add(editChartItem);
+        chartsMenu.add(deleteChartItem);
+
         menuBar.add(fileMenu);
         menuBar.add(editMenu);
+        menuBar.add(chartsMenu);
         menuBar.add(helpMenu);
 
         return menuBar;
@@ -320,6 +346,9 @@ public class ExpenceTracker extends JFrame {
 
         // 2. Update Transaction Table
         updateTransactionTable(""); // "" means no filter
+
+        // 3. Update Visualization Panel
+        dataVisualizationPanel.updateData(transactions);
     }
 
     private static boolean showLoginDialog() {
@@ -396,6 +425,25 @@ public class ExpenceTracker extends JFrame {
                 "About", JOptionPane.INFORMATION_MESSAGE);
     }
 
+    private void manageChart(String action) {
+        // Switch to the dashboard tab to make it clear the action relates to charts
+        tabbedPane.setSelectedIndex(1); // 0 is Transactions, 1 is Dashboard
+
+        String message;
+        switch (action) {
+            case "add":
+                message = "Functionality to add a new chart is not yet implemented.";
+                break;
+            case "edit":
+                message = "Functionality to edit the current chart is not yet implemented.";
+                break;
+            default:
+                message = "Functionality to delete a chart is not yet implemented.";
+                break;
+        }
+        JOptionPane.showMessageDialog(this, message, "In Progress", JOptionPane.INFORMATION_MESSAGE);
+    }
+
     private JButton createActionButton(String text) {
         JButton button = new JButton(text);
         button.setBackground(primaryRed);
@@ -413,14 +461,14 @@ public class ExpenceTracker extends JFrame {
     }
 
     // Simple data class for a transaction
-    private static class Transaction {
+    public static class Transaction {
         Date date;
         String category;
         String description;
         double amount;
         TransactionType type;
 
-        public Transaction(Date date, String category, String description, double amount, TransactionType type) throws java.text.ParseException {
+        public Transaction(Date date, String category, String description, double amount, TransactionType type) {
             this.date = date;
             this.category = category;
             this.description = description;
@@ -482,14 +530,21 @@ public class ExpenceTracker extends JFrame {
             gbc.gridx = 1; gbc.gridy = 4; panel.add(styleTextField(amountField), gbc);
 
             // --- Buttons ---
-            JButton okButton = new JButton("OK");
-            okButton.addActionListener(e -> onOK());
-            JButton cancelButton = new JButton("Cancel"); // Keep this simple
+            JButton saveButton = createActionButton("Save");
+            saveButton.addActionListener(e -> onOK());
+
+            JButton cancelButton = new JButton("Cancel");
+            // Style the cancel button to match the theme
+            cancelButton.setBackground(componentDark);
+            cancelButton.setForeground(textLight);
+            cancelButton.setFont(roboto.deriveFont(14f));
+            cancelButton.setFocusPainted(false);
+            cancelButton.setBorder(new EmptyBorder(8, 15, 8, 15));
             cancelButton.addActionListener(e -> dispose());
 
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             buttonPanel.setBackground(backgroundDark);
-            buttonPanel.add(createActionButton("Save")); // Use styled button
+            buttonPanel.add(saveButton);
             buttonPanel.add(cancelButton);
 
             getContentPane().add(panel, BorderLayout.CENTER);
